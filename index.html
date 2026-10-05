@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>五官神探：黃金比例挑戰</title>
+    <style>
+        :root {
+            --primary-color: #4a4a4a;
+            --secondary-color: #f2f2f2;
+            --accent-color: #ff5a5f;
+            --background-color: #f9f9f9;
+            --font-family: 'Helvetica Neue', 'PingFang TC', 'Heiti TC', 'Microsoft JhengHei', sans-serif;
+            --card-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            --border-radius: 12px;
+        }
+        
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--background-color);
+            color: var(--primary-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 1200px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #setup-screen, #game-screen, #result-screen {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .hidden { display: none !important; }
+
+        .setup-card {
+            background: white;
+            padding: 30px 40px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .setup-card h1 {
+            font-size: 2em;
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: var(--accent-color);
+        }
+        
+        .setup-card p {
+            font-size: 1.1em;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .choice-grid {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .choice-grid.two-cols { grid-template-columns: 1fr 1fr; }
+        .choice-grid.three-cols { grid-template-columns: 1fr 1fr 1fr; }
+
+        .choice-btn {
+            padding: 15px 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            background: #fafafa;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1em;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .choice-btn .emoji {
+            font-size: 2em;
+        }
+
+        .choice-btn.selected {
+            border-color: var(--accent-color);
+            background-color: #fff0f0;
+            color: var(--accent-color);
+            font-weight: bold;
+            transform: scale(1.05);
+        }
+
+        #start-game-btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        #start-game-btn:hover { background-color: #e04a4f; }
+        
+        /* --- Game Screen --- */
+        #game-screen {
+            flex-direction: row;
+            gap: 10px;
+            padding: 10px;
+            overflow: hidden;
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+        }
+
+        #left-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            height: 100%;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            padding: 15px;
+        }
+        
+        #top-bar {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        #home-btn {
+            background: #eee; color: #333;
+        }
+        
+        #top-bar .game-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        #top-bar .game-btn:hover { transform: translateY(-2px); }
+
+        #guidelines-btn { background: #e0efff; color: #007aff; }
+        #hint-btn { background: #fff3cd; color: #ff9500; }
+        #finish-btn { background: #d4edda; color: #28a745; }
+
+        #canvas-container {
+            width: 100%;
+            flex-grow: 1;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 0;
+        }
+
+        #avatar-canvas, #guideline-canvas, #hint-canvas {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        #hint-canvas { z-index: 10; pointer-events: none; opacity: 0.5; }
+
+        .draggable-item {
+            position: absolute;
+            cursor: move;
+            z-index: 5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .draggable-item svg {
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        #right-panel {
+            width: 280px;
+            height: 100%;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        
+        #right-panel h3 {
+            margin-top: 0;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 20px;
+        }
+        
+        .part-category {
+            margin-bottom: 20px;
+        }
+        .part-category h4 {
+            margin: 0 0 10px 0;
+            font-size: 1em;
+            color: #555;
+        }
+        .part-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 10px;
+        }
+        .part-btn {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background: #f0f0f0;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 5px;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .part-btn:hover { border-color: var(--accent-color); }
+        .part-btn svg { width: 90%; height: 90%; }
+        .part-btn.used::after {
+            content: '✓';
+            position: absolute;
+            top: 2px;
+            right: 4px;
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        /* Result Modal */
+        #result-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .result-card {
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+            width: 90%;
+            max-width: 800px;
+        }
+        
+        .result-card h2 {
+            font-size: 2.5em;
+            color: var(--accent-color);
+            margin: 0 0 10px 0;
+        }
+        
+        .result-card p {
+            font-size: 1.2em;
+            margin: 0 0 20px 0;
+        }
+
+        #artwork-preview-container {
+             width: 100%;
+             max-width: 600px;
+             margin: 0 auto 20px;
+             border: 1px solid #eee;
+             border-radius: 8px;
+             padding: 10px;
+        }
+        #artwork-preview-container h4 {
+            margin: 0 0 10px;
+        }
+        #artwork-preview {
+            width: 100%;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .result-actions .game-btn {
+            padding: 12px 25px;
+            font-size: 1em;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .result-actions .game-btn:hover { transform: scale(1.05); }
+
+        #download-btn { background: #28a745; color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <!-- SETUP SCREEN -->
+        <div id="setup-screen">
+            <div class="setup-card">
+                <h1>五官神探</h1>
+                <p>請先輸入你的資料，並選擇角色性別、面型及髮型，開始挑戰！</p>
+                <div class="input-group">
+                    <label for="class-input">班別 (Class)</label>
+                    <input type="text" id="class-input" placeholder="e.g. 1A">
+                </div>
+                <div class="input-group">
+                    <label for="student-id-input">學號 (Student ID)</label>
+                    <input type="text" id="student-id-input" placeholder="e.g. 01">
+                </div>
+                 <div class="input-group">
+                    <label for="name-input">姓名 (Name)</label>
+                    <input type="text" id="name-input" placeholder="e.g. Chan Tai Man">
+                </div>
+                <div class="input-group">
+                    <label>性別 (Gender)</label>
+                    <div class="choice-grid two-cols">
+                        <button class="choice-btn" data-choice="gender" data-value="female">
+                            <span class="emoji">👩</span>
+                            <span>女生</span>
+                        </button>
+                        <button class="choice-btn" data-choice="gender" data-value="male">
+                            <span class="emoji">👨</span>
+                            <span>男生</span>
+                        </button>
+                    </div>
+                </div>
+                 <div class="input-group">
+                    <label>面型 (Face Shape)</label>
+                    <div id="face-shape-choices" class="choice-grid two-cols">
+                         <button class="choice-btn" data-choice="face" data-value="oval">
+                            <span class="emoji">🥚</span>
+                            <span>標準鵝蛋臉</span>
+                        </button>
+                        <button class="choice-btn" data-choice="face" data-value="square">
+                            <span class="emoji">◻️</span>
+                            <span>溫和方臉</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>髮型 (Hairstyle)</label>
+                    <div id="hairstyle-choices" class="choice-grid three-cols">
+                        <!-- Options will be populated by JS -->
+                    </div>
+                </div>
+                <button id="start-game-btn">開始創作</button>
+            </div>
+        </div>
+
+        <!-- GAME SCREEN -->
+        <div id="game-screen" class="hidden">
+            <div id="left-panel">
+                <div id="top-bar">
+                    <button id="home-btn" class="game-btn">🔙 返回主頁</button>
+                    <div>
+                        <button id="guidelines-btn" class="game-btn">📐 開啟三庭五眼</button>
+                        <button id="hint-btn" class="game-btn">💡 5秒提示</button>
+                    </div>
+                    <button id="finish-btn" class="game-btn">✅ 完成評分與匯出</button>
+                </div>
+                <div id="canvas-container">
+                    <canvas id="avatar-canvas"></canvas>
+                    <canvas id="guideline-canvas"></canvas>
+                    <canvas id="hint-canvas"></canvas>
+                </div>
+            </div>
+            <div id="right-panel">
+                 <h3>五官部件</h3>
+                <div id="parts-selection"></div>
+            </div>
+        </div>
+
+        <!-- RESULT SCREEN -->
+        <div id="result-screen" class="hidden">
+            <div class="result-card">
+                <h2 id="result-title">創作完成！</h2>
+                <p id="result-score"></p>
+                <div id="artwork-preview-container">
+                    <h4>作品預覽</h4>
+                    <canvas id="artwork-preview"></canvas>
+                </div>
+                <div class="result-actions">
+                    <button id="home-btn-result" class="game-btn">🔙 返回主頁</button>
+                    <button id="download-btn" class="game-btn">📥 下載作品卡</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // --- UTILITY & CONFIGURATION ---
+
+    const $ = (selector) => document.querySelector(selector);
+    const $$ = (selector) => document.querySelectorAll(selector);
+
+    const SCREENS = {
+        setup: $('#setup-screen'),
+        game: $('#game-screen'),
+        result: $('#result-screen'),
+    };
+
+    const state = {
+        class: '',
+        studentId: '',
+        name: '',
+        gender: '',
+        faceShape: '',
+        hairstyle: '',
+        parts: {},
+        guidelinesVisible: false,
+        activeElement: null,
+    };
+    
+    let canvas, ctx, guidelineCanvas, guidelineCtx, hintCanvas, hintCtx;
+    let canvasSize, baseFacePath, baseNeckPath, currentFaceConfig;
+    let interactInstance;
+    
+    // --- ASSETS & CONFIGS (SVG Paths) ---
+    // Note: All parts are designed for a 500x500 canvas
+    
+    const FACE_CONFIGS = {
+        oval: {
+            // A standard oval face shape
+            path: "M145,200 C120,250 115,350 170,430 C190,460 250,480 330,430 C385,350 380,250 355,200",
+            jawOffset: 0,
+            width: 240,
+            foreheadY: 175,
+            browY: 258,
+            noseY: 341,
+            chinY: 425
+        },
+        square: {
+            // A soft square face shape
+            path: "M145,190 C125,250 125,360 160,440 C190,470 310,470 340,440 C375,360 375,250 355,190",
+            jawOffset: 10,
+            width: 250,
+            foreheadY: 170,
+            browY: 256,
+            noseY: 343,
+            chinY: 430
+        }
+    };
+    
+    const HAIRSTYLES = {
+        female: [
+            { 
+                id: 'f_long_straight', 
+                name: '中分及肩',
+                path: "M250,95 C220,95 150,110 125,180 C110,230 110,320 120,400 C125,440 160,465 180,450 C160,350 160,250 180,180 C190,140 230,120 250,120 L250,95 M250,95 C280,95 350,110 375,180 C390,230 390,320 380,400 C375,440 340,465 320,450 C340,350 340,250 320,180 C310,140 270,120 250,120 L250,95 Z",
+                fill: "#1a1a1a",
+                highlight: { path: "M225,98 L248,98 L248,160 L225,170Z M252,98 L275,98 L275,170 L252,160Z", fill: "#4d4d4d" }
+            },
+            { 
+                id: 'f_ponytail', 
+                name: '高馬尾',
+                path: "M140,165 C130,140 160,90 250,90 C340,90 370,140 360,165 C350,135 300,110 250,110 C200,110 150,135 140,165 Z",
+                fill: "#333",
+                highlight: { path: "M200,95 C230,95 245,105 250,110 C255,105 270,95 300,95 C310,105 280,115 250,115 C220,115 190,105 200,95 Z", fill: "#666"}
+            },
+             { 
+                id: 'f_short_wavy', 
+                name: '齊肩微卷',
+                path: "M130,160 C120,130 170,80 250,80 C330,80 380,130 370,160 C390,250 390,350 360,420 C330,430 320,400 320,380 C320,350 330,250 350,180 C340,120 300,100 250,100 C200,100 160,120 150,180 C170,250 180,350 180,380 C180,400 170,430 140,420 C110,350 110,250 130,160 Z",
+                fill: "#452A24",
+                highlight: { path: "M220,85 C240,85 245,95 250,100 M280,85 C260,85 255,95 250,100", fill: "#73483C", stroke: true }
+            },
+        ],
+        male: [
+            { 
+                id: 'm_short', 
+                name: '陽光短髮',
+                path: "M140,160 C140,130 180,90 250,90 C320,90 360,130 360,160 C350,140 310,120 250,120 C190,120 150,140 140,160 Z",
+                fill: "#2c2c2c",
+                highlight: { path: "M180,98 L220,95 L210,120Z M230,94 L260,94 L255,120Z M270,95 L300,98 L285,120Z", fill: "#555" }
+            },
+            { 
+                id: 'm_korean', 
+                name: '韓系分頭',
+                path: "M140,160 C140,130 180,85 240,85 C270,85 280,110 270,140 C280,100 330,90 360,120 C370,150 365,165 360,165 C350,140 310,130 250,130 C190,130 150,140 140,160 Z",
+                fill: "#333",
+                highlight: { path: "M200,90 C220,90 235,100 240,105 M290,95 C270,95 260,105 250,110", fill: "#666", stroke: true }
+            },
+            { 
+                id: 'm_buzz', 
+                name: '清爽寸頭',
+                path: "M150,180 C145,140 190,110 250,110 C310,110 355,140 350,180 Z",
+                fill: "#1a1a1a",
+                highlight: null
+            },
+        ],
+    };
+
+    const PARTS = {
+        eyes: {
+            name: "眼睛",
+            items: {
+                eye_default: { 
+                    width: 90, height: 45,
+                    left: { svg: `<svg viewBox="0 0 100 50"><path d="M5,25 C20,5 80,5 95,25 C80,45 20,45 5,25 Z" fill="#fff" stroke="#111" stroke-width="3"/><circle cx="50" cy="25" r="15" fill="#422817"/><circle cx="58" cy="18" r="5" fill="#fff" opacity="0.8"/></svg>`},
+                    right: { svg: `<svg viewBox="0 0 100 50"><path d="M5,25 C20,5 80,5 95,25 C80,45 20,45 5,25 Z" fill="#fff" stroke="#111" stroke-width="3"/><circle cx="50" cy="25" r="15" fill="#422817"/><circle cx="42" cy="18" r="5" fill="#fff" opacity="0.8"/></svg>`},
+                },
+                 eye_glasses: {
+                    width: 250, height: 60,
+                    isAccessory: true,
+                    svg: `<svg viewBox="0 0 250 60">
+                        <path d="M45,50 C10,50 5,25 5,25 C5,10 20,5 45,5 L85,5 C110,5 125,10 125,25 C125,25 120,50 85,50 Z" fill="none" stroke="#111" stroke-width="5"/>
+                        <path d="M125,25 L165,25" stroke="#111" stroke-width="5"/>
+                        <path d="M165,50 C200,50 205,25 205,25 C205,10 190,5 165,5 L225,5 C250,5 265,10 265,25 C265,25 260,50 225,50 Z" fill="none" stroke="#111" stroke-width="5"/>
+                        <path d="M30,28 L100,28" stroke="#111" stroke-width="2"/>
+                        <path d="M150,28 L220,28" stroke="#111" stroke-width="2"/>
+                        <path d="M6,3 L50,1" stroke="#111" stroke-width="4"/>
+                        <path d="M200,1 L244,3" stroke="#111" stroke-width="4"/>
+                        <circle cx="85" cy="40" r="3" fill="#fff" opacity="0.5"/>
+                        <circle cx="225" cy="40" r="3" fill="#fff" opacity="0.5"/>
+                    </svg>`,
+                    target: null
+                }
+            }
+        },
+        eyebrows: {
+            name: "眉毛",
+            items: {
+                eyebrow_default: {
+                    width: 80, height: 20,
+                    left: { svg: `<svg viewBox="0 0 80 20"><path d="M5,15 C20,5 60,5 75,15" stroke="#333" stroke-width="6" fill="none" stroke-linecap="round"/></svg>`},
+                    right: { svg: `<svg viewBox="0 0 80 20"><path d="M5,15 C20,5 60,5 75,15" stroke="#333" stroke-width="6" fill="none" stroke-linecap="round"/></svg>`},
+                }
+            }
+        },
+        nose: {
+            name: "鼻子",
+            items: {
+                nose_default: {
+                    width: 40, height: 40,
+                    svg: `<svg viewBox="0 0 40 40"><path d="M20,5 L15,30 C15,35 25,35 25,30 L20,5" fill="none" stroke="#555" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M12,30 A 8 5 0 0 0 28 30" fill="none" stroke="#555" stroke-width="2.5" /></svg>`
+                }
+            }
+        },
+        mouth: {
+            name: "嘴巴",
+            items: {
+                mouth_smile: {
+                    width: 80, height: 30,
+                    svg: `<svg viewBox="0 0 80 30"><path d="M5,10 C20,25 60,25 75,10" stroke="#111" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M5,10 C20,18 60,18 75,10" fill="#ffb8b8"/></svg>`
+                }
+            }
+        },
+        accessories: {
+             name: "裝飾",
+             items: {
+                mole: {
+                    width: 10, height: 10,
+                    svg: `<svg viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="#543831"/></svg>`
+                },
+                earring: {
+                    width: 20, height: 30,
+                     isAccessory: true,
+                     left: {svg: `<svg viewBox="0 0 20 30"><path d="M10,15 A 8 8 0 1 1 10 29 A 8 8 0 1 1 10 15 Z" fill="none" stroke="#f0c400" stroke-width="3"/><circle cx="10" cy="8" r="4" fill="#f0c400" /></svg>`},
+                     right: {svg: `<svg viewBox="0 0 20 30"><path d="M10,15 A 8 8 0 1 1 10 29 A 8 8 0 1 1 10 15 Z" fill="none" stroke="#f0c400" stroke-width="3"/><circle cx="10" cy="8" r="4" fill="#f0c400" /></svg>`}
+                }
+             }
+        }
+    };
+    
+    // --- INITIALIZATION ---
+
+    function init() {
+        initSetupScreen();
+        initGameScreen();
+        initResultScreen();
+
+        window.addEventListener('resize', onResize);
+    }
+    
+    function initSetupScreen() {
+        // Restore from localStorage if available
+        $('#class-input').value = localStorage.getItem('va-class') || '';
+        $('#student-id-input').value = localStorage.getItem('va-studentId') || '';
+        $('#name-input').value = localStorage.getItem('va-name') || '';
+
+        $$('.choice-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const choiceType = btn.dataset.choice;
+                const value = btn.dataset.value;
+                state[choiceType] = value;
+                
+                // Update selection visual
+                $$(`.choice-btn[data-choice="${choiceType}"]`).forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+
+                if (choiceType === 'gender') {
+                    populateHairstyles();
+                }
+            });
+        });
+
+        $('#start-game-btn').addEventListener('click', startGame);
+    }
+
+    function initGameScreen() {
+        canvas = $('#avatar-canvas');
+        ctx = canvas.getContext('2d');
+        guidelineCanvas = $('#guideline-canvas');
+        guidelineCtx = guidelineCanvas.getContext('2d');
+        hintCanvas = $('#hint-canvas');
+        hintCtx = hintCanvas.getContext('2d');
+        
+        $('#guidelines-btn').addEventListener('click', toggleGuidelines);
+        $('#hint-btn').addEventListener('click', showHint);
+        $('#finish-btn').addEventListener('click', finishGame);
+
+        populatePartsPanel();
+    }
+
+    function initResultScreen() {
+        $('#download-btn').addEventListener('click', downloadArtworkCard);
+    }
+    
+    function initHomeButtons() {
+        [...$$('#home-btn, #home-btn-result')].forEach(btn => {
+            btn.addEventListener('click', () => {
+                SCREENS.game.classList.add('hidden');
+                SCREENS.result.classList.add('hidden');
+                SCREENS.setup.classList.remove('hidden');
+                resetGame();
+            });
+        });
+    }
+
+    // --- SCREEN MANAGEMENT & GAME FLOW ---
+    
+    function showScreen(screenName) {
+        Object.values(SCREENS).forEach(screen => screen.classList.add('hidden'));
+        SCREENS[screenName].classList.remove('hidden');
+    }
+
+    function startGame() {
+        state.class = $('#class-input').value.trim();
+        state.studentId = $('#student-id-input').value.trim();
+        state.name = $('#name-input').value.trim();
+
+        // Save to localStorage
+        localStorage.setItem('va-class', state.class);
+        localStorage.setItem('va-studentId', state.studentId);
+        localStorage.setItem('va-name', state.name);
+
+        if (!state.gender || !state.faceShape || !state.hairstyle) {
+            alert('請選擇性別、面型和髮型！');
+            return;
+        }
+
+        showScreen('game');
+        onResize();
+        drawAvatarBase();
+    }
+    
+    function resetGame() {
+        state.parts = {};
+        state.guidelinesVisible = false;
+        $('#canvas-container').querySelectorAll('.draggable-item').forEach(el => el.remove());
+        $$('.part-btn').forEach(btn => btn.classList.remove('used'));
+        clearCanvas(guidelineCanvas, guidelineCtx);
+    }
+
+    function finishGame() {
+        showScreen('result');
+        const score = calculateScore();
+        $('#result-score').textContent = `你的黃金比例掌握度：${score}%`;
+        
+        // Use a timeout to ensure the modal is visible before drawing
+        setTimeout(generateArtworkPreview, 100);
+    }
+
+    // --- SETUP & UI POPULATION ---
+
+    function populateHairstyles() {
+        const container = $('#hairstyle-choices');
+        container.innerHTML = '';
+        if (!state.gender) return;
+
+        HAIRSTYLES[state.gender].forEach(style => {
+            const btn = document.createElement('button');
+            btn.className = 'choice-btn';
+            btn.dataset.choice = 'hairstyle';
+            btn.dataset.value = style.id;
+            btn.innerHTML = `<span>${style.name}</span>`;
+            
+            if (state.hairstyle === style.id) {
+                btn.classList.add('selected');
+            }
+            
+            btn.addEventListener('click', () => {
+                state.hairstyle = style.id;
+                $$('.choice-btn[data-choice="hairstyle"]').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+            });
+            container.appendChild(btn);
+        });
+        container.className = `choice-grid ${HAIRSTYLES[state.gender].length === 2 ? 'two-cols' : 'three-cols'}`;
+    }
+
+    function populatePartsPanel() {
+        const container = $('#parts-selection');
+        container.innerHTML = '';
+        Object.entries(PARTS).forEach(([categoryKey, category]) => {
+            const categoryDiv = document.createElement('div');
+            categoryDiv.className = 'part-category';
+            categoryDiv.innerHTML = `<h4>${category.name}</h4>`;
+            
+            const gridDiv = document.createElement('div');
+            gridDiv.className = 'part-grid';
+
+            Object.entries(category.items).forEach(([partKey, part]) => {
+                const btn = document.createElement('button');
+                btn.className = 'part-btn';
+                btn.dataset.partKey = partKey;
+                btn.dataset.categoryKey = categoryKey;
+                btn.innerHTML = part.left ? part.left.svg : part.svg;
+                
+                btn.addEventListener('click', () => addPartToCanvas(categoryKey, partKey));
+                gridDiv.appendChild(btn);
+            });
+            categoryDiv.appendChild(gridDiv);
+            container.appendChild(categoryDiv);
+        });
+    }
+
+    // --- CANVAS DRAWING ---
+
+    function onResize() {
+        const container = $('#canvas-container');
+        const containerSize = Math.min(container.clientWidth, container.clientHeight) * 0.9;
+        canvasSize = containerSize;
+
+        [canvas, guidelineCanvas, hintCanvas].forEach(c => {
+            c.width = canvasSize;
+            c.height = canvasSize;
+        });
+        
+        // Rescale placed items
+        document.querySelectorAll('.draggable-item').forEach(item => {
+            const scale = canvasSize / 500;
+            const currentTransform = item.style.transform || 'translate(0px, 0px) scale(1) rotate(0deg)';
+            const newTransform = currentTransform.replace(/scale\([0-9.]+\)/, `scale(${scale})`);
+            // item.style.transform = newTransform;
+             item.style.width = `${parseFloat(item.dataset.baseWidth) * scale}px`;
+             item.style.height = `${parseFloat(item.dataset.baseHeight) * scale}px`;
+
+        });
+
+        drawAvatarBase();
+        if (state.guidelinesVisible) {
+            drawGuidelines();
+        }
+    }
+
+    function drawAvatarBase() {
+        clearCanvas(canvas, ctx);
+        const scale = canvasSize / 500;
+        ctx.save();
+        ctx.scale(scale, scale);
+
+        currentFaceConfig = FACE_CONFIGS[state.faceShape];
+
+        // Body and Neck
+        ctx.fillStyle = '#C2D6E6';
+        ctx.beginPath();
+        ctx.moveTo(170, 460);
+        ctx.ellipse(250, 520, 150, 80, 0, Math.PI, 2 * Math.PI);
+        ctx.fill();
+        ctx.fillStyle = '#f0c9b6';
+        ctx.beginPath();
+        ctx.moveTo(210, 380 + currentFaceConfig.jawOffset);
+        ctx.lineTo(210, 480);
+        ctx.ellipse(250, 480, 40, 20, 0, Math.PI, 2 * Math.PI, true);
+        ctx.lineTo(290, 380 + currentFaceConfig.jawOffset);
+        ctx.closePath();
+        ctx.fill();
+
+        // Face Shape
+        baseFacePath = new Path2D(`M145,200 C120,250 115,350 170,430 C190,460 250,480 330,430 C385,350 380,250 355,200`);
+        ctx.fillStyle = '#ffe3d4';
+        const facePath = new Path2D(currentFaceConfig.path);
+        ctx.fill(facePath);
+        ctx.strokeStyle = '#333';
+        ctx.lineWidth = 4;
+        ctx.stroke(facePath);
+
+        // Ears
+        ctx.fillStyle = '#f0c9b6';
+        ctx.strokeStyle = '#333';
+        const earY = 250 + (340 - 250) / 2;
+        const earWidth = 35;
+        const earHeight = 70;
+        // Left ear
+        const leftEarPath = new Path2D(`M140,${earY-35} c-20,5 -35,30 -20,60 c5,10 15,10 20,0`);
+        ctx.fill(leftEarPath);
+        ctx.stroke(leftEarPath);
+        // Right ear
+        const rightEarPath = new Path2D(`M360,${earY-35} c20,5 35,30 20,60 c-5,10 -15,10 -20,0`);
+        ctx.fill(rightEarPath);
+        ctx.stroke(rightEarPath);
+
+        // Hairstyle
+        const hairstyle = HAIRSTYLES[state.gender].find(h => h.id === state.hairstyle);
+        if (hairstyle) {
+            ctx.fillStyle = hairstyle.fill;
+            ctx.strokeStyle = hairstyle.fill;
+            ctx.lineWidth = 2;
+            const hairPath = new Path2D(hairstyle.path);
+            ctx.fill(hairPath);
+
+            if (hairstyle.highlight) {
+                ctx.fillStyle = hairstyle.highlight.fill;
+                const highlightPath = new Path2D(hairstyle.highlight.path);
+                if (hairstyle.highlight.stroke) {
+                    ctx.strokeStyle = hairstyle.highlight.fill;
+                    ctx.lineWidth = 5;
+                    ctx.stroke(highlightPath);
+                } else {
+                    ctx.fill(highlightPath);
+                }
+            }
+        }
+        
+        // Blush
+        ctx.fillStyle = 'rgba(255, 105, 135, 0.2)';
+        ctx.beginPath();
+        ctx.ellipse(185, 300, 35, 20, 0, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(315, 300, 35, 20, 0, 0, 2 * Math.PI);
+        ctx.fill();
+
+        ctx.restore();
+    }
+    
+    function drawGuidelines() {
+        clearCanvas(guidelineCanvas, guidelineCtx);
+        const scale = canvasSize / 500;
+        const { foreheadY, browY, noseY, chinY, width } = currentFaceConfig;
+        
+        guidelineCtx.save();
+        guidelineCtx.scale(scale, scale);
+        guidelineCtx.strokeStyle = 'rgba(255, 90, 95, 0.8)';
+        guidelineCtx.fillStyle = 'rgba(255, 90, 95, 0.8)';
+        guidelineCtx.lineWidth = 2;
+        guidelineCtx.setLineDash([8, 6]);
+        guidelineCtx.font = 'bold 16px sans-serif';
+        
+        const lineLength = 400;
+        const startX = (500 - lineLength) / 2;
+
+        // Horizontal lines (三庭)
+        const linesY = [foreheadY, browY, noseY, chinY];
+        const labelsY = ['1/3 上庭', '1/3 中庭', '1/3 下庭'];
+        guidelineCtx.beginPath();
+        linesY.forEach(y => {
+            guidelineCtx.moveTo(startX, y);
+            guidelineCtx.lineTo(startX + lineLength, y);
+        });
+        guidelineCtx.stroke();
+        
+        // Horizontal labels
+        for(let i=0; i < labelsY.length; i++) {
+            const y = linesY[i] + (linesY[i+1] - linesY[i]) / 2;
+            guidelineCtx.fillText(labelsY[i], startX + lineLength + 10, y + 5);
+        }
+
+        // Vertical lines (五眼)
+        const eyeWidth = width / 5;
+        const vStartX = (500 - width) / 2;
+        guidelineCtx.beginPath();
+        for (let i = 0; i <= 5; i++) {
+            const x = vStartX + i * eyeWidth;
+            guidelineCtx.moveTo(x, 150);
+            guidelineCtx.lineTo(x, 450);
+        }
+        guidelineCtx.stroke();
+
+        // Vertical labels
+        for (let i=0; i < 5; i++) {
+            const x = vStartX + i * eyeWidth + eyeWidth / 2 - 10;
+            guidelineCtx.fillText('1/5', x, 140);
+        }
+
+        guidelineCtx.restore();
+    }
+    
+    function showHint() {
+        clearCanvas(hintCanvas, hintCtx);
+        const scale = canvasSize / 500;
+        const { browY, noseY, width } = currentFaceConfig;
+        const eyeWidth = width / 5;
+        const vStartX = (500 - width) / 2;
+        
+        hintCtx.save();
+        hintCtx.scale(scale, scale);
+        hintCtx.strokeStyle = '#ff9500';
+        hintCtx.lineWidth = 4;
+        hintCtx.setLineDash([5, 5]);
+
+        // Eyes
+        const eyeY = browY + (noseY - browY) * 0.1;
+        hintCtx.strokeRect(vStartX + eyeWidth + 5, eyeY - 20, eyeWidth - 10, 40);
+        hintCtx.strokeRect(vStartX + 3*eyeWidth + 5, eyeY - 20, eyeWidth - 10, 40);
+        
+        // Nose
+        const noseCenter = vStartX + width/2;
+        hintCtx.strokeRect(noseCenter - 20, noseY - 20, 40, 40);
+        
+        // Mouth
+        const mouthY = noseY + (currentFaceConfig.chinY - noseY) * 0.33;
+        hintCtx.strokeRect(noseCenter - 40, mouthY - 15, 80, 30);
+        
+        // Eyebrows
+        const eyebrowY = browY - 20;
+        hintCtx.strokeRect(vStartX + eyeWidth, eyebrowY-10, eyeWidth, 20);
+        hintCtx.strokeRect(vStartX + 3*eyeWidth, eyebrowY-10, eyeWidth, 20);
+
+        hintCtx.restore();
+
+        setTimeout(() => clearCanvas(hintCanvas, hintCtx), 5000);
+    }
+    
+    function toggleGuidelines() {
+        state.guidelinesVisible = !state.guidelinesVisible;
+        if (state.guidelinesVisible) {
+            drawGuidelines();
+            $('#guidelines-btn').textContent = '📐 關閉三庭五眼';
+        } else {
+            clearCanvas(guidelineCanvas, guidelineCtx);
+            $('#guidelines-btn').textContent = '📐 開啟三庭五眼';
+        }
+    }
+
+    function clearCanvas(canvasToClear, contextToClear) {
+        contextToClear.clearRect(0, 0, canvasToClear.width, canvasToClear.height);
+    }
+
+    // --- DRAGGABLE PARTS ---
+    
+    function addPartToCanvas(categoryKey, partKey) {
+        const partData = PARTS[categoryKey].items[partKey];
+        const container = $('#canvas-container');
+        
+        if(state.parts[partKey] && !partData.isAccessory) return; // Prevent adding same part unless it's an accessory
+        
+        const btn = $(`.part-btn[data-part-key="${partKey}"]`);
+        btn.classList.add('used');
+
+        if (partData.left && partData.right) {
+            createDraggableItem(partKey, partData, 'left');
+            createDraggableItem(partKey, partData, 'right');
+        } else {
+            createDraggableItem(partKey, partData);
+        }
+    }
+    
+    function createDraggableItem(partKey, partData, side = null) {
+        const item = document.createElement('div');
+        item.className = 'draggable-item';
+        
+        const svgData = side ? partData[side] : partData;
+        item.innerHTML = svgData.svg;
+
+        const baseWidth = partData.width;
+        const baseHeight = partData.height;
+        const scale = canvasSize / 500;
+
+        item.style.width = `${baseWidth * scale}px`;
+        item.style.height = `${baseHeight * scale}px`;
+        
+        item.dataset.partKey = partKey;
+        if(side) item.dataset.side = side;
+        
+        // Initial position
+        item.style.left = `${(canvas.offsetLeft + canvas.width / 2) - (baseWidth * scale / 2)}px`;
+        item.style.top = `${(canvas.offsetTop + canvas.height / 2) - (baseHeight * scale / 2)}px`;
+
+        // Store transform data on the element
+        item.dataset.x = (canvas.width / 2) - (baseWidth * scale / 2);
+        item.dataset.y = (canvas.height / 2) - (baseHeight * scale / 2);
+        item.dataset.scale = 1;
+        item.dataset.angle = 0;
+        
+        state.parts[partKey + (side || '')] = item;
+        
+        $('#canvas-container').appendChild(item);
+        
+        interact(item)
+            .draggable({
+                listeners: {
+                    move(event) {
+                        const target = event.target;
+                        const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+                        const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+                        
+                        target.style.transform = `translate(${x}px, ${y}px) rotate(${target.dataset.angle}deg) scale(${target.dataset.scale})`;
+
+                        target.setAttribute('data-x', x);
+                        target.setAttribute('data-y', y);
+                    }
+                }
+            })
+            .gesturable({
+                 listeners: {
+                    move (event) {
+                        const target = event.target;
+                        const scale = (parseFloat(target.getAttribute('data-scale')) || 1) * (1 + event.ds);
+                        const angle = (parseFloat(target.getAttribute('data-angle')) || 0) + event.da;
+                        
+                        target.style.transform = `translate(${target.dataset.x}px, ${target.dataset.y}px) rotate(${angle}deg) scale(${scale})`;
+                        
+                        target.setAttribute('data-angle', angle);
+                        target.setAttribute('data-scale', scale);
+                    }
+                }
+            })
+    }
+    
+    // --- SCORING ---
+    function calculateScore() {
+        // This is a simplified scoring logic.
+        let totalScore = 0;
+        let partCount = 0;
+        const scale = canvasSize / 500;
+        
+        const { browY, noseY, chinY, width } = currentFaceConfig;
+        const eyeWidth = width / 5;
+        const vStartX = (500 - width) / 2;
+        
+        Object.values(state.parts).forEach(item => {
+            const rect = item.getBoundingClientRect();
+            const canvasRect = canvas.getBoundingClientRect();
+
+            const itemCenterX = (rect.left - canvasRect.left + rect.width / 2) / scale;
+            const itemCenterY = (rect.top - canvasRect.top + rect.height / 2) / scale;
+            
+            let targetX, targetY, tolerance = 30;
+            const partKey = item.dataset.partKey;
+            const side = item.dataset.side;
+
+            if (partKey.startsWith('eye') && !PARTS.eyes.items[partKey].isAccessory) {
+                targetY = browY + (noseY - browY) * 0.1;
+                targetX = side === 'left' ? vStartX + 1.5 * eyeWidth : vStartX + 3.5 * eyeWidth;
+                partCount++;
+            } else if (partKey.startsWith('eyebrow')) {
+                targetY = browY - 20;
+                targetX = side === 'left' ? vStartX + 1.5 * eyeWidth : vStartX + 3.5 * eyeWidth;
+                partCount++;
+            } else if (partKey.startsWith('nose')) {
+                targetY = noseY;
+                targetX = vStartX + 2.5 * eyeWidth;
+                partCount++;
+            } else if (partKey.startsWith('mouth')) {
+                targetY = noseY + (chinY - noseY) * 0.33;
+                targetX = vStartX + 2.5 * eyeWidth;
+                partCount++;
+            }
+
+            if(targetX !== undefined) {
+                const dist = Math.sqrt(Math.pow(itemCenterX - targetX, 2) + Math.pow(itemCenterY - targetY, 2));
+                const score = Math.max(0, 100 - (dist / tolerance) * 100);
+                totalScore += score;
+            }
+        });
+        
+        return partCount > 0 ? Math.round(totalScore / partCount) : 0;
+    }
+    
+    // --- ARTWORK EXPORT ---
+    async function generateArtworkPreview() {
+        const previewCanvas = $('#artwork-preview');
+        await drawToCanvas(previewCanvas);
+    }
+    
+    async function downloadArtworkCard() {
+        const downloadCanvas = document.createElement('canvas');
+        await drawToCanvas(downloadCanvas, true);
+
+        const link = document.createElement('a');
+        link.download = `VA_artwork_${state.class}_${state.studentId}_${state.name}.png`;
+        link.href = downloadCanvas.toDataURL('image/png');
+        link.click();
+    }
+    
+    // NEW & FIXED drawing function
+    async function drawToCanvas(targetCanvas, isForDownload = false) {
+        const targetCtx = targetCanvas.getContext('2d');
+        const originalSize = 500;
+        const renderSize = isForDownload ? 1000 : 500; // Higher resolution for download
+        const scale = renderSize / originalSize;
+        
+        targetCanvas.width = renderSize;
+        targetCanvas.height = renderSize;
+
+        targetCtx.save();
+        targetCtx.scale(scale, scale);
+
+        // 1. Draw Background
+        targetCtx.fillStyle = '#fbeee6';
+        const bgPath = new Path2D("M0,0 L500,0 L500,500 L0,500 Z");
+        const pattern = document.createElement('canvas');
+        pattern.width = 40;
+        pattern.height = 40;
+        const pctx = pattern.getContext('2d');
+        pctx.strokeStyle = 'rgba(239, 195, 170, 0.4)';
+        pctx.lineWidth = 1;
+        pctx.beginPath();
+        pctx.moveTo(0,0); pctx.lineTo(40,40);
+        pctx.moveTo(20,-10); pctx.lineTo(50,20);
+        pctx.moveTo(-10,20); pctx.lineTo(20,50);
+        pctx.moveTo(40,0); pctx.lineTo(0,40);
+        pctx.stroke();
+        targetCtx.fillStyle = targetCtx.createPattern(pattern, 'repeat');
+        targetCtx.fill(bgPath);
+        
+        // 2. Draw Avatar Base (same logic as drawAvatarBase)
+        const faceConfig = FACE_CONFIGS[state.faceShape];
+
+        targetCtx.fillStyle = '#C2D6E6';
+        targetCtx.beginPath();
+        targetCtx.moveTo(170, 460);
+        targetCtx.ellipse(250, 520, 150, 80, 0, Math.PI, 2 * Math.PI);
+        targetCtx.fill();
+        targetCtx.fillStyle = '#f0c9b6';
+        targetCtx.beginPath();
+        targetCtx.moveTo(210, 380 + faceConfig.jawOffset);
+        targetCtx.lineTo(210, 480);
+        targetCtx.ellipse(250, 480, 40, 20, 0, Math.PI, 2 * Math.PI, true);
+        targetCtx.lineTo(290, 380 + faceConfig.jawOffset);
+        targetCtx.closePath();
+        targetCtx.fill();
+
+        targetCtx.fillStyle = '#ffe3d4';
+        const facePath = new Path2D(faceConfig.path);
+        targetCtx.fill(facePath);
+        targetCtx.strokeStyle = '#333';
+        targetCtx.lineWidth = 4;
+        targetCtx.stroke(facePath);
+        
+        const earY = 250 + (340 - 250) / 2;
+        targetCtx.fillStyle = '#f0c9b6';
+        const leftEarPath = new Path2D(`M140,${earY-35} c-20,5 -35,30 -20,60 c5,10 15,10 20,0`);
+        targetCtx.fill(leftEarPath);
+        targetCtx.stroke(leftEarPath);
+        const rightEarPath = new Path2D(`M360,${earY-35} c20,5 35,30 20,60 c-5,10 -15,10 -20,0`);
+        targetCtx.fill(rightEarPath);
+        targetCtx.stroke(rightEarPath);
+        
+        // 3. Draw placed parts - This is the core fix
+        const itemPromises = [];
+        const itemsToDraw = [];
+        
+        // Convert all live SVGs to drawable images
+        for (const item of Object.values(state.parts)) {
+            const svgElement = item.querySelector('svg');
+            const serializer = new XMLSerializer();
+            const svgString = serializer.serializeToString(svgElement);
+            
+            const img = new Image();
+            const promise = new Promise(resolve => img.onload = resolve);
+            itemPromises.push(promise);
+            
+            img.src = 'data:image/svg+xml;base64,' + btoa(svgString);
+            
+            itemsToDraw.push({
+                img,
+                x: parseFloat(item.dataset.x) / (canvasSize/500),
+                y: parseFloat(item.dataset.y) / (canvasSize/500),
+                scale: parseFloat(item.dataset.scale),
+                angle: parseFloat(item.dataset.angle),
+                width: parseFloat(svgElement.viewBox.baseVal.width),
+                height: parseFloat(svgElement.viewBox.baseVal.height)
+            });
+        }
+        
+        await Promise.all(itemPromises);
+        
+        // Now draw them onto the canvas
+        for (const item of itemsToDraw) {
+            targetCtx.save();
+            
+            const itemCenterX = item.x + (item.width / 2);
+            const itemCenterY = item.y + (item.height / 2);
+            
+            targetCtx.translate(itemCenterX, itemCenterY);
+            targetCtx.rotate(item.angle * Math.PI / 180);
+            targetCtx.scale(item.scale, item.scale);
+            
+            targetCtx.drawImage(item.img, -item.width / 2, -item.height / 2, item.width, item.height);
+            
+            targetCtx.restore();
+        }
+
+        // 4. Draw Hairstyle on top
+        const hairstyle = HAIRSTYLES[state.gender].find(h => h.id === state.hairstyle);
+        if (hairstyle) {
+            targetCtx.fillStyle = hairstyle.fill;
+            targetCtx.strokeStyle = hairstyle.fill;
+            targetCtx.lineWidth = 2;
+            const hairPath = new Path2D(hairstyle.path);
+            targetCtx.fill(hairPath);
+
+            if (hairstyle.highlight) {
+                targetCtx.fillStyle = hairstyle.highlight.fill;
+                const highlightPath = new Path2D(hairstyle.highlight.path);
+                 if (hairstyle.highlight.stroke) {
+                    targetCtx.strokeStyle = hairstyle.highlight.fill;
+                    targetCtx.lineWidth = 5;
+                    ctx.stroke(highlightPath);
+                } else {
+                    targetCtx.fill(highlightPath);
+                }
+            }
+        }
+        
+        // 5. Draw Blush
+        targetCtx.fillStyle = 'rgba(255, 105, 135, 0.2)';
+        targetCtx.beginPath();
+        targetCtx.ellipse(185, 300, 35, 20, 0, 0, 2 * Math.PI);
+        targetCtx.fill();
+        targetCtx.beginPath();
+        targetCtx.ellipse(315, 300, 35, 20, 0, 0, 2 * Math.PI);
+        targetCtx.fill();
+
+        targetCtx.restore(); // Restore from the initial scale
+        
+        // 6. Draw info text if it's for download
+        if(isForDownload) {
+            targetCtx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            targetCtx.fillRect(0, renderSize - 80, renderSize, 80);
+            
+            targetCtx.fillStyle = 'white';
+            targetCtx.font = '24px ' + var(--font-family);
+            targetCtx.textAlign = 'left';
+            targetCtx.textBaseline = 'middle';
+            
+            const textY = renderSize - 40;
+            targetCtx.fillText(`班別: ${state.class}`, 30, textY);
+            targetCtx.fillText(`學號: ${state.studentId}`, 250, textY);
+            targetCtx.fillText(`姓名: ${state.name}`, 450, textY);
+
+            const scoreText = `得分: ${calculateScore()}%`;
+            targetCtx.font = 'bold 30px ' + var(--font-family);
+            targetCtx.textAlign = 'right';
+            targetCtx.fillText(scoreText, renderSize - 30, textY);
+        }
+    }
+
+    // --- SCRIPT EXECUTION ---
+    init();
+    initHomeButtons();
+
+    // Dynamically load interact.js
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js';
+    script.onload = () => {
+        // interact.js is ready
+    };
+    document.head.appendChild(script);
+
+    </script>
+</body>
+</html>
